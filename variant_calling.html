@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Variant calling – Cancer variant analysis</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./assets/SIB_logo.svg" rel="icon" type="image/svg+xml">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-b85bc7c33db8c58e0ec93c3465666fed.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-9136bbad3bd2cd7b6cb5c0e133dce393.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-5cd1a2b14b344268e1f66214383d8724.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-9136bbad3bd2cd7b6cb5c0e133dce393.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro">
+<!-- Cookie Consent & Matomo Tracking -->
+<script src="assets/cookie-consent.js"></script>
+<!-- End Matomo Code -->
+
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Cancer variant analysis</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./precourse_preparations.html"> 
+<span class="menu-text">Precourse preparations</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./course_schedule.html"> 
+<span class="menu-text">Course schedule</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-course-material" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Course material</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-course-material">    
+        <li>
+    <a class="dropdown-item" href="./quality_control.html">
+ <span class="dropdown-text">Setup &amp; quality control</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./variant_calling.html">
+ <span class="dropdown-text">Variant calling</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./variant_annotation.html">
+ <span class="dropdown-text">Variants annotation</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/sib-swiss/cancer-variants-training/"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">Variant calling</li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+      <a href="./index.html" class="sidebar-logo-link">
+      <img src="./assets/SIB_LogoQ_GBv.svg" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="./assets/SIB_LogoQ_GBv.svg" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      </a>
+      </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#short-variant-calling" id="toc-short-variant-calling" class="nav-link active" data-scroll-target="#short-variant-calling">Short variant calling</a>
+  <ul class="collapse">
+  <li><a href="#extra-summarizing-the-vcf" id="toc-extra-summarizing-the-vcf" class="nav-link" data-scroll-target="#extra-summarizing-the-vcf">EXTRA: Summarizing the VCF</a></li>
+  </ul></li>
+  <li><a href="#copy-number-variation-calling" id="toc-copy-number-variation-calling" class="nav-link" data-scroll-target="#copy-number-variation-calling">Copy number variation calling</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">Summary</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Variant calling</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="short-variant-calling" class="level2">
+<h2 class="anchored" data-anchor-id="short-variant-calling">Short variant calling</h2>
+<p>Now that we have quality-controlled the BAM files, we can go ahead with somatic variant calling.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Somatic vs Germline Variant Calling
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Somatic variant calling differs from germline calling in several key ways:</p>
+<ul>
+<li><strong>Tumor-normal pairs</strong>: We compare tumor against matched normal to identify somatic (tumor-only) variants</li>
+<li><strong>Lower allele frequencies</strong>: Somatic variants may be present in only a subset of tumor cells (subclonal)</li>
+<li><strong>Artifacts</strong>: Sequencing/alignment artifacts can mimic somatic variants, requiring careful filtering</li>
+<li><strong>Statistical challenge</strong>: Distinguishing true low-frequency somatic variants from noise</li>
+</ul>
+<p>This is why we need specialized tools like Mutect2 rather than standard germline callers.</p>
+</div>
+</div>
+<p>For this, we use <code>Mutect2</code> which is a somatic variant caller from the GATK toolkit. In addition to the expected bam files and references genome, <code>Mutect2</code> requires some additional input:</p>
+<ul>
+<li><code>--intervals</code>: the intervals of our target regions. This is in the <code>interval_list</code> format.</li>
+<li><code>-normal</code>: the sample name of the normal sample. So, the <code>SM</code> tag of the read group of the normal sample.</li>
+<li><code>--germline-resource</code>: known sites of germline variants with their allele frequencies in the population. These are used to estimate the confidence of a germline variant in the normal sample.</li>
+<li><code>--panel-of-normals</code>: A VCF generated from normal samples that contain sites with known technical artifacts. Ideally, you create a PON from your own normal samples, but this is typically recommended if you have more than 40 normal samples. Therefore, here, we use a pre-generated PON from the 1000 genomes project. More information on PON in <a href="https://gatk.broadinstitute.org/hc/en-us/articles/360035890631-Panel-of-Normals-PON">this article</a>.</li>
+</ul>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Exercise 1
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Create a script called <code>03_run_mutect2.sh</code>. After that, check out the <a href="https://gatk.broadinstitute.org/hc/en-us/articles/360037593851-Mutect2">manual of <code>Mutect2</code></a> and replace the placeholders <code>FIXME</code> with the required values of the <code>Mutect2</code> below command and run it:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">#!/usr/bin/env bash</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="va">ALIGNDIR</span><span class="op">=</span>~/project/data/alignments</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="va">REFDIR</span><span class="op">=</span>~/project/data/reference</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="va">RESOURCEDIR</span><span class="op">=</span>~/project/data/resources</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="va">VARIANTDIR</span><span class="op">=</span>~/project/variants</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> <span class="st">"</span><span class="va">$VARIANTDIR</span><span class="st">"</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="ex">gatk</span> Mutect2 <span class="dt">\</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>-R FIXME <span class="dt">\</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>--intervals <span class="st">"</span><span class="va">$REFDIR</span><span class="st">"</span>/exome_regions.bed.interval_list <span class="dt">\</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>-I FIXME <span class="dt">\</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>-I FIXME <span class="dt">\</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>-normal FIXME <span class="dt">\</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>--germline-resource <span class="st">"</span><span class="va">$RESOURCEDIR</span><span class="st">"</span>/af-only-gnomad.hg38.subset.vcf.gz <span class="dt">\</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>--panel-of-normals <span class="st">"</span><span class="va">$RESOURCEDIR</span><span class="st">"</span>/1000g_pon.hg38.subset.vcf.gz <span class="dt">\</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>-O <span class="st">"</span><span class="va">$VARIANTDIR</span><span class="st">"</span>/somatic.vcf.gz</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<div class="callout callout-style-default callout-caution callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Caution
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>This takes a while to run. Have a break!</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Answer
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/usr/bin/env bash</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="va">ALIGNDIR</span><span class="op">=</span>~/project/data/alignments</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="va">REFDIR</span><span class="op">=</span>~/project/data/reference</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="va">RESOURCEDIR</span><span class="op">=</span>~/project/data/resources</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="va">VARIANTDIR</span><span class="op">=</span>~/project/variants</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> <span class="va">$VARIANTDIR</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="ex">gatk</span> Mutect2 <span class="dt">\</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>-R <span class="st">"</span><span class="va">$REFDIR</span><span class="st">"</span>/ref_genome.fa <span class="dt">\</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>--intervals <span class="st">"</span><span class="va">$REFDIR</span><span class="st">"</span>/exome_regions.bed.interval_list <span class="dt">\</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>-I <span class="st">"</span><span class="va">$ALIGNDIR</span><span class="st">"</span>/tumor.recal.bam <span class="dt">\</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>-I <span class="st">"</span><span class="va">$ALIGNDIR</span><span class="st">"</span>/normal.recal.bam <span class="dt">\</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>-normal normal <span class="dt">\</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>--germline-resource <span class="st">"</span><span class="va">$RESOURCEDIR</span><span class="st">"</span>/af-only-gnomad.hg38.subset.vcf.gz <span class="dt">\</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>--panel-of-normals <span class="st">"</span><span class="va">$RESOURCEDIR</span><span class="st">"</span>/1000g_pon.hg38.subset.vcf.gz <span class="dt">\</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>-O <span class="st">"</span><span class="va">$VARIANTDIR</span><span class="st">"</span>/somatic.vcf.gz</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Notes</strong></p>
+<ul>
+<li><code>-normal</code>: comes from the read group in the bam files (<code>SM</code> tag)</li>
+<li><code>--germline-resource</code>: A VCF of <strong>known germline variants</strong> from large population studies (gnomAD, 1000 Genomes)</li>
+<li><code>--panel-of-normals</code>: These are NOT real biological variants - they’re sequencing/alignment errors (ideally from &gt;40-100 normal samples from the same cohort)</li>
+</ul>
+</div>
+</div>
+</div>
+<p>After calling the variants we can do an initial filtering step. We do this with <code>FilterMutectCalls</code>. This method takes technical artifacts, possibility of germline variants, and sequencing error in account, calculates an error probability and tries to optimize between recall and precision.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Exercise 2
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Create a script called <code>04_filter_mutect_calls.sh</code> in <code>~/project/scripts</code>. From the script, run the command to filter the somatic variants:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/usr/bin/env bash</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="va">REFDIR</span><span class="op">=</span>~/project/data/reference</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="va">VARIANTDIR</span><span class="op">=</span>~/project/variants</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co"># fill the filter column</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="ex">gatk</span> FilterMutectCalls <span class="dt">\</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>-R <span class="st">"</span><span class="va">$REFDIR</span><span class="st">"</span>/ref_genome.fa <span class="dt">\</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>-V <span class="st">"</span><span class="va">$VARIANTDIR</span><span class="st">"</span>/somatic.vcf.gz <span class="dt">\</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>-O <span class="st">"</span><span class="va">$VARIANTDIR</span><span class="st">"</span>/somatic.filtered.vcf.gz</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co"># create a vcf with variants passing filters (PASS)</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="ex">bcftools</span> view <span class="at">-f</span> PASS <span class="st">"</span><span class="va">$VARIANTDIR</span><span class="st">"</span>/somatic.filtered.vcf.gz <span class="at">-Oz</span> <span class="dt">\</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> <span class="st">"</span><span class="va">$VARIANTDIR</span><span class="st">"</span>/somatic.filtered.PASS.vcf.gz</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="ex">bcftools</span> index <span class="at">--tbi</span> <span class="st">"</span><span class="va">$VARIANTDIR</span><span class="st">"</span>/somatic.filtered.PASS.vcf.gz</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>How many variants were kept? What were the main reason for filtering them out?</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The filtering information is in the 7th column of the vcf, so you can do something like:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">bcftools</span> view <span class="at">-H</span> my_variants.vcf.gz <span class="kw">|</span> <span class="fu">cut</span> <span class="at">-f</span> 7 <span class="kw">|</span> <span class="fu">sort</span> <span class="kw">|</span> <span class="fu">uniq</span> <span class="at">-c</span> <span class="kw">|</span> <span class="fu">sort</span> <span class="at">-nr</span> <span class="kw">|</span> <span class="fu">head</span> <span class="at">-n</span> 10</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Answer
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-7" class="callout-7-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>To get the number of variants in the unfiltered vcf:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="va">VARIANTDIR</span><span class="op">=</span>~/project/variants</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">bcftools</span> view <span class="at">-H</span> <span class="st">"</span><span class="va">$VARIANTDIR</span><span class="st">"</span>/somatic.vcf.gz <span class="kw">|</span> <span class="fu">wc</span> <span class="at">-l</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Resulting in <em>467</em> unfiltered variants.</p>
+<p>To get the 10 most frequently occurring filters in the filter column of the filtered vcf:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="va">VARIANTDIR</span><span class="op">=</span>~/project/variants</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ex">bcftools</span> view <span class="at">-H</span> <span class="st">"</span><span class="va">$VARIANTDIR</span><span class="st">"</span>/somatic.filtered.vcf.gz <span class="kw">|</span> <span class="fu">cut</span> <span class="at">-f</span> 7 <span class="kw">|</span> <span class="fu">sort</span> <span class="kw">|</span> <span class="fu">uniq</span> <span class="at">-c</span> <span class="kw">|</span> <span class="fu">sort</span> <span class="at">-nr</span> <span class="kw">|</span> <span class="fu">head</span> <span class="at">-n</span> 10</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Resulting in:</p>
+<pre><code>133 PASS
+48 weak_evidence
+26 normal_artifact;strand_bias
+21 panel_of_normals
+17 normal_artifact
+13 normal_artifact;slippage;weak_evidence
+13 clustered_events;normal_artifact;strand_bias
+12 germline;multiallelic;normal_artifact;panel_of_normals
+12 base_qual;normal_artifact;strand_bias
+9 strand_bias;weak_evidence</code></pre>
+<p>So most variants were filtered out, and most of the variants were filtered out because of ‘weak evidence’.</p>
+<p>In order to figure out what that means we can check out the vcf header:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="va">VARIANTDIR</span><span class="op">=</span>~/project/variants</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">bcftools</span> view <span class="at">-h</span> <span class="st">"</span><span class="va">$VARIANTDIR</span><span class="st">"</span>/somatic.filtered.vcf.gz <span class="kw">|</span> <span class="fu">grep</span> <span class="st">"^##FILTER"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Resulting in:</p>
+<pre><code>##FILTER=&lt;ID=FAIL,Description="Fail the site if all alleles fail but for different reasons."&gt;
+##FILTER=&lt;ID=PASS,Description="Site contains at least one allele that passes filters"&gt;
+##FILTER=&lt;ID=base_qual,Description="alt median base quality"&gt;
+##FILTER=&lt;ID=clustered_events,Description="Clustered events observed in the tumor"&gt;
+##FILTER=&lt;ID=contamination,Description="contamination"&gt;
+##FILTER=&lt;ID=duplicate,Description="evidence for alt allele is overrepresented by apparent duplicates"&gt;
+##FILTER=&lt;ID=fragment,Description="abs(ref - alt) median fragment length"&gt;
+##FILTER=&lt;ID=germline,Description="Evidence indicates this site is germline, not somatic"&gt;
+##FILTER=&lt;ID=haplotype,Description="Variant near filtered variant on same haplotype."&gt;
+##FILTER=&lt;ID=low_allele_frac,Description="Allele fraction is below specified threshold"&gt;
+##FILTER=&lt;ID=map_qual,Description="ref - alt median mapping quality"&gt;
+##FILTER=&lt;ID=multiallelic,Description="Site filtered because too many alt alleles pass tumor LOD"&gt;
+##FILTER=&lt;ID=n_ratio,Description="Ratio of N to alt exceeds specified ratio"&gt;
+##FILTER=&lt;ID=normal_artifact,Description="artifact_in_normal"&gt;
+##FILTER=&lt;ID=orientation,Description="orientation bias detected by the orientation bias mixture model"&gt;
+##FILTER=&lt;ID=panel_of_normals,Description="Blacklisted site in panel of normals"&gt;
+##FILTER=&lt;ID=position,Description="median distance of alt variants from end of reads"&gt;
+##FILTER=&lt;ID=possible_numt,Description="Allele depth is below expected coverage of NuMT in autosome"&gt;
+##FILTER=&lt;ID=slippage,Description="Site filtered due to contraction of short tandem repeat region"&gt;
+##FILTER=&lt;ID=strand_bias,Description="Evidence for alt allele comes from one read direction only"&gt;
+##FILTER=&lt;ID=strict_strand,Description="Evidence for alt allele is not represented in both directions"&gt;
+##FILTER=&lt;ID=weak_evidence,Description="Mutation does not meet likelihood threshold"&gt;</code></pre>
+<p>Showing us that these mutations do not meet the likelihood threshold, basically telling us that these are the variants filtered out because of the combined error probability based on technical artifacts, possibility of germline variants, and sequencing error. The other filters are so called ‘hard filters’, meaning that by themselves they do not meet a fixed threshold.</p>
+</div>
+</div>
+</div>
+<section id="extra-summarizing-the-vcf" class="level3">
+<h3 class="anchored" data-anchor-id="extra-summarizing-the-vcf">EXTRA: Summarizing the VCF</h3>
+<div class="callout callout-style-default callout-caution callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Caution</span>Only when you have time
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Do the exercises about summarizing the VCF only if you have time. Otherwise, continue to <a href="#copy-number-variation-calling">Copy number variation calling</a>.</p>
+</div>
+</div>
+<p>Let’s check out the VCF in a bit more detail. We’d like to have an idea what kind of variants are in there, and what for example their variant allele frequency is.</p>
+<p>First, we can check what the variants look like:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="va">VARIANTDIR</span><span class="op">=</span>~/project/variants</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">bcftools</span> view <span class="at">-H</span> <span class="st">"</span><span class="va">$VARIANTDIR</span><span class="st">"</span>/somatic.filtered.vcf.gz <span class="kw">|</span> <span class="fu">head</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Showing us that both the <code>FORMAT</code> and <code>INFO</code> fields are filled with information. To check out the meaning of what is in the <code>INFO</code> field you can run:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="va">VARIANTDIR</span><span class="op">=</span>~/project/variants</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="ex">bcftools</span> view <span class="at">-h</span> <span class="st">"</span><span class="va">$VARIANTDIR</span><span class="st">"</span>/somatic.filtered.vcf.gz <span class="kw">|</span> <span class="fu">grep</span> <span class="st">"^##INFO"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>And you can do the same for the format fields:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="va">VARIANTDIR</span><span class="op">=</span>~/project/variants</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="ex">bcftools</span> view <span class="at">-h</span> <span class="st">"</span><span class="va">$VARIANTDIR</span><span class="st">"</span>/somatic.filtered.vcf.gz <span class="kw">|</span> <span class="fu">grep</span> <span class="st">"^##FORMAT"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>To summarize the vcf for information in the format or info fields you can use <a href="https://samtools.github.io/bcftools/bcftools.html#query"><code>bcftools query</code></a>. For example, for getting the likelihood of variant and depth of each sample, you can do the following (for the first 20 variants):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="va">VARIANTDIR</span><span class="op">=</span>~/project/variants</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="ex">bcftools</span> query <span class="at">-f</span> <span class="st">'%CHROM\t%POS\t%FILTER\t\t%INFO/TLOD\t[%SAMPLE=%DP;]\n'</span> <span class="st">"</span><span class="va">$VARIANTDIR</span><span class="st">"</span>/somatic.filtered.vcf.gz <span class="kw">|</span> <span class="fu">head</span> <span class="at">-20</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Exercise 3
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Instead of the depth <code>DP</code> for each sample get the variant allele frequency for each sample, and compare that with the FILTER column.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-10-contents" aria-controls="callout-10" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Answer
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-10" class="callout-10-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>We can check which tag contains the variant allele frequency in the vcf:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="va">VARIANTDIR</span><span class="op">=</span>~/project/variants</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="ex">bcftools</span> view <span class="at">-h</span> <span class="st">"</span><span class="va">$VARIANTDIR</span><span class="st">"</span>/somatic.filtered.vcf.gz <span class="kw">|</span> <span class="fu">grep</span> <span class="st">"^##FORMAT"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Returning:</p>
+<pre><code>##FORMAT=&lt;ID=AD,Number=R,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed"&gt;
+##FORMAT=&lt;ID=AF,Number=A,Type=Float,Description="Allele fractions of alternate alleles in the tumor"&gt;
+##FORMAT=&lt;ID=DP,Number=1,Type=Integer,Description="Approximate read depth (reads with MQ=255 or with bad mates are filtered)"&gt;
+##FORMAT=&lt;ID=F1R2,Number=R,Type=Integer,Description="Count of reads in F1R2 pair orientation supporting each allele"&gt;
+##FORMAT=&lt;ID=F2R1,Number=R,Type=Integer,Description="Count of reads in F2R1 pair orientation supporting each allele"&gt;
+##FORMAT=&lt;ID=FAD,Number=R,Type=Integer,Description="Count of fragments supporting each allele."&gt;
+##FORMAT=&lt;ID=GQ,Number=1,Type=Integer,Description="Genotype Quality"&gt;
+##FORMAT=&lt;ID=GT,Number=1,Type=String,Description="Genotype"&gt;
+##FORMAT=&lt;ID=PGT,Number=1,Type=String,Description="Physical phasing haplotype information, describing how the alternate alleles are phased in relation to one another; will always be heterozygous and is not intended to describe called alleles"&gt;
+##FORMAT=&lt;ID=PID,Number=1,Type=String,Description="Physical phasing ID information, where each unique ID within a given sample (but not across samples) connects records within a phasing group"&gt;
+##FORMAT=&lt;ID=PL,Number=G,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification"&gt;
+##FORMAT=&lt;ID=PS,Number=1,Type=Integer,Description="Phasing set (typically the position of the first variant in the set)"&gt;
+##FORMAT=&lt;ID=SB,Number=4,Type=Integer,Description="Per-sample component statistics which comprise the Fisher's Exact Test to detect strand bias."&gt;</code></pre>
+<p>Where <code>AF</code> contains ‘Allele fractions of alternate alleles in the tumor’, so that is the tag we are looking for. So, we replace <code>DP</code> with <code>AF</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="va">VARIANTDIR</span><span class="op">=</span>~/project/variants</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="ex">bcftools</span> query <span class="at">-f</span> <span class="st">'%CHROM\t%POS\t%FILTER\t\t%INFO/TLOD\t[%SAMPLE=%AF;]\n'</span> <span class="st">"</span><span class="va">$VARIANTDIR</span><span class="st">"</span>/somatic.filtered.vcf.gz <span class="kw">|</span> <span class="fu">head</span> <span class="at">-30</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Returning:</p>
+<pre><code>chr6    106265  map_qual;strand_bias;weak_evidence              3.99    normal=0.00671;tumor=0.01;
+chr6    325357  PASS            719.91  normal=0.001054;tumor=0.161;
+chr6    325783  PASS            1292.31 normal=0.0009626;tumor=0.224;
+chr6    325901  PASS            1030.6  normal=0.005447;tumor=0.183;
+chr6    325916  PASS            937.7   normal=0.004142;tumor=0.116;
+chr6    1742560 panel_of_normals                235.6   normal=0.02;tumor=0.41;
+chr6    1916336 PASS            187.23  normal=0.022;tumor=0.482;
+chr6    1930220 PASS            152.54  normal=0.016;tumor=0.207;
+chr6    2674999 PASS            190.32  normal=0.028;tumor=0.514;
+chr6    2834013 PASS            245.04  normal=0.02;tumor=0.494;
+chr6    2840548 PASS            274.4   normal=0.021;tumor=0.522;
+chr6    3110986 weak_evidence           3.03    normal=0.017;tumor=0.019;
+chr6    3723708 PASS            266.67  normal=0.017;tumor=0.42;
+chr6    4892169 weak_evidence           4.43    normal=0.024;tumor=0.02;
+chr6    5103987 germline;multiallelic;normal_artifact;panel_of_normals          13.57,257.27    normal=0.037,0.825;tumor=0.077,0.834;
+chr6    6250887 PASS            260.99  normal=0.018;tumor=0.459;
+chr6    7176847 PASS            107.39  normal=0.026;tumor=0.319;
+chr6    7585458 PASS            171.88  normal=0.015;tumor=0.283;
+chr6    7833697 PASS            122.24  normal=0.057;tumor=0.513;
+chr6    7883281 germline                99.5    normal=0.05;tumor=0.476;
+chr6    8054329 PASS            420.89  normal=0.045;tumor=0.446;
+chr6    9900366 panel_of_normals                525.07  normal=0.024;tumor=0.992;
+chr6    10397660        germline;multiallelic;slippage          3.21,50.94      normal=0.042,0.043;tumor=0.098,0.798;
+chr6    10398435        PASS            365.76  normal=0.013;tumor=0.943;
+chr6    10801908        PASS            91.41   normal=0.02;tumor=0.312;
+chr6    10989772        PASS            71.25   normal=0.041;tumor=0.49;
+chr6    11306007        PASS            209.24  normal=0.009359;tumor=0.4;
+chr6    13479062        germline;multiallelic;normal_artifact;panel_of_normals          4.63,5.86,13.96 normal=0.022,0.027,0.258;tumor=0.043,0.068,0.165;
+chr6    13977507        weak_evidence           3.4     normal=0.012;tumor=0.027;
+chr6    16147945        PASS            331.72  normal=0.014;tumor=0.978;</code></pre>
+<p>Where we see that if there’s the filter <code>weak_evidence</code> the VAF of the tumor is typically low.</p>
+<p><strong>Key observations:</strong></p>
+<ol type="1">
+<li><strong>PASS variants</strong> typically have:
+<ul>
+<li>Tumor VAF &gt;0.15 (15%)</li>
+<li>Low/zero VAF in normal (&lt;0.03)</li>
+<li>Example: chr6:325357 has tumor=0.161, normal=0.001</li>
+</ul></li>
+<li><strong>weak_evidence</strong> variants show:
+<ul>
+<li>Very low tumor VAF (&lt;0.05)</li>
+<li>Near the detection limit</li>
+<li>Example: chr6:106265 has tumor=0.01, normal=0.00671</li>
+</ul></li>
+<li><strong>germline</strong> tagged variants:
+<ul>
+<li>Similar VAF in both tumor and normal</li>
+<li>Example: chr6:5103987 has normal=0.825, tumor=0.834 (very similar)</li>
+<li>These are inherited variants, not somatic</li>
+</ul></li>
+<li><strong>panel_of_normals</strong> filtered variants:
+<ul>
+<li>May have high VAF but appear in technical artifact database</li>
+<li>Example: chr6:9900366 has very high tumor VAF (0.992) but filtered</li>
+</ul></li>
+</ol>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="copy-number-variation-calling" class="level2">
+<h2 class="anchored" data-anchor-id="copy-number-variation-calling">Copy number variation calling</h2>
+<p>Variation of copy number in genes can have a large effect on the phenotype of a tumor. Therefore, we will also estimate the copy number variation occurring on chromosome 6 and 17. For that, we use <a href="https://cnvkit.readthedocs.io/en/stable/">CNVkit</a>.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Exercise 4
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Check out the <a href="https://cnvkit.readthedocs.io/en/stable/quickstart.html#build-a-reference-from-normal-samples-and-infer-tumor-copy-ratios">documentation</a> of <code>CNVkit.py bash</code>, and the helper (<code>cnvkit.py batch -h</code>), create a script called <code>05_run_cnvkit.sh</code>, and replace the missing values at <code>FIXME</code>.</p>
+<p>After that, checkout the visualizations (<code>tumor-scatter.png</code>) at <code>~/project/variants/cnvkit</code>. Do you see any evidence for copy number variation?</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/usr/bin/env bash</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="va">ALIGNDIR</span><span class="op">=</span>~/project/data/alignments</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="va">REFDIR</span><span class="op">=</span>~/project/data/reference</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="va">RESOURCEDIR</span><span class="op">=</span>~/project/data/resources</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="va">VARIANTDIR</span><span class="op">=</span>~/project/variants</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="ex">cnvkit.py</span> batch FIXME <span class="dt">\</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>--normal FIXME <span class="dt">\</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>--targets FIXME <span class="dt">\</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>--fasta FIXME <span class="dt">\</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>--annotate <span class="st">"</span><span class="va">$RESOURCEDIR</span><span class="st">"</span>/refFlat.txt <span class="dt">\</span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>--output-reference <span class="st">"</span><span class="va">$VARIANTDIR</span><span class="st">"</span>/reference.cnn <span class="dt">\</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>--output-dir <span class="st">"</span><span class="va">$VARIANTDIR</span><span class="st">"</span>/cnvkit/ <span class="dt">\</span></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>--processes 4 <span class="dt">\</span></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>--scatter <span class="dt">\</span></span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>--diagram</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-13-contents" aria-controls="callout-13" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Answer
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-13" class="callout-13-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>We provide the tumor bam, normal bam, the interval list (can also be a bed file) and our reference genome:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/usr/bin/env bash</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="va">ALIGNDIR</span><span class="op">=</span>~/project/data/alignments</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="va">REFDIR</span><span class="op">=</span>~/project/data/reference</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="va">RESOURCEDIR</span><span class="op">=</span>~/project/data/resources</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="va">VARIANTDIR</span><span class="op">=</span>~/project/variants</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="ex">cnvkit.py</span> batch <span class="st">"</span><span class="va">$ALIGNDIR</span><span class="st">"</span>/tumor.recal.bam <span class="dt">\</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>--normal <span class="st">"</span><span class="va">$ALIGNDIR</span><span class="st">"</span>/normal.recal.bam <span class="dt">\</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>--targets <span class="st">"</span><span class="va">$REFDIR</span><span class="st">"</span>/exome_regions.bed.interval_list <span class="dt">\</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>--fasta <span class="st">"</span><span class="va">$REFDIR</span><span class="st">"</span>/ref_genome.fa <span class="dt">\</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>--annotate <span class="st">"</span><span class="va">$RESOURCEDIR</span><span class="st">"</span>/refFlat.txt <span class="dt">\</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>--output-reference <span class="st">"</span><span class="va">$VARIANTDIR</span><span class="st">"</span>/reference.cnn <span class="dt">\</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>--output-dir <span class="st">"</span><span class="va">$VARIANTDIR</span><span class="st">"</span>/cnvkit/ <span class="dt">\</span></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>--processes 4 <span class="dt">\</span></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>--scatter <span class="dt">\</span></span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>--diagram</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>After running cnvkit, multiple files are created in <code>~/project/variants/cnvkit</code>. The scatter plot is typically interesting to investigate at first:</p>
+<p><img src="assets/images/tumor-scatter.png" class="img-fluid"></p>
+<p><strong>Interpretation:</strong></p>
+<p>CNVkit reports log2 ratios relative to a diploid (2 copy) baseline:</p>
+<ul>
+<li><strong>Formula</strong>: Copy number = 2^(log2_ratio) × 2</li>
+<li><strong>Examples</strong>:
+<ul>
+<li>log2 ratio = 0 → 2^(0) × 2 = 2 copies (normal diploid)</li>
+<li>log2 ratio = +0.58 → 2^(0.58) × 2 ≈ 3 copies (gain)</li>
+<li>log2 ratio = -1.0 → 2^(-1.0) × 2 = 1 copy (loss)</li>
+</ul></li>
+</ul>
+<p>Here we see evidence for both losses and gains on both chromosomes:</p>
+<p><strong>Chromosome 6:</strong></p>
+<ul>
+<li>Multiple segments with varying copy number</li>
+<li>Regions around log2 ratio <strong>+0.6</strong> (gain - approximately 3 copies)</li>
+<li>Regions around log2 ratio <strong>-0.5</strong> (loss - approximately 1 copy)</li>
+<li>Some neutral regions around 0 (diploid)</li>
+</ul>
+<p><strong>Chromosome 17:</strong></p>
+<ul>
+<li><strong>Large deletion</strong> in the p-arm (short arm, left side): log2 ratio ≈ <strong>-0.6 to -0.7</strong>
+<ul>
+<li>This represents loss of one copy across a large chromosomal region</li>
+</ul></li>
+<li><strong>Gain</strong> in the q-arm (long arm, right side): log2 ratio ≈ <strong>+0.6</strong>
+<ul>
+<li>This represents an extra copy (3 copies total)</li>
+</ul></li>
+</ul>
+<p><strong>Key observations:</strong></p>
+<ul>
+<li>Log2 ratio of <strong>+0.6</strong> ≈ 3 copies (one extra copy: log2(3/2) = 0.58)</li>
+<li>Log2 ratio of <strong>-0.6 to -0.7</strong> ≈ 1.2-1.3 copies (partial loss of one allele)</li>
+<li>Log2 ratio of <strong>-1.0</strong> = 1 copy (complete loss of one allele: log2(1/2) = -1.0)</li>
+<li>Log2 ratio of <strong>+1.0</strong> ≈ 4 copies (duplication: log2(4/2) = 1.0)</li>
+</ul>
+<p>The <strong>orange lines</strong> represent segmented regions with similar copy number (segments), while the <strong>gray dots</strong> show individual bin-level measurements from targeted regions.</p>
+<p><strong>Note</strong>: These HCC1395 cells are from a TNBC cell line, so we’d expect to see typical TNBC alterations including TP53 loss.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Clinical significance: Chromosome 17 alterations in breast cancer
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The pattern observed on chromosome 17 is particularly interesting for breast cancer:</p>
+<ul>
+<li><strong>Chr17p deletion</strong> (the large loss we see) often involves <strong>TP53</strong> (17p13.1), a critical tumor suppressor
+<ul>
+<li>TP53 loss is extremely common in TNBC (&gt;80% of cases)</li>
+<li>Loss of p53 function removes a key cell cycle checkpoint</li>
+</ul></li>
+<li><strong>Chr17q gain</strong> (the amplification we see) may include genes like <strong>ERBB2/HER2</strong> (17q12)
+<ul>
+<li>Although TNBC is typically HER2-negative by definition, focal amplifications can occur</li>
+<li>Other oncogenes on 17q may also be amplified</li>
+</ul></li>
+</ul>
+<p>This type of arm-level copy number change (one arm deleted, other amplified) is characteristic of chromosomal instability common in cancer.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Further reading
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>CNVkit is described in detail in:</p>
+<blockquote class="blockquote">
+<p>Talevich et al.&nbsp;(2016). CNVkit: Genome-Wide Copy Number Detection and Visualization from Targeted DNA Sequencing. <em>PLOS Computational Biology</em>.</p>
+</blockquote>
+</div>
+</div>
+</section>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">Summary</h2>
+<p>In this section, you’ve:</p>
+<ul>
+<li>✅ Called somatic variants with Mutect2 using tumor-normal pairs</li>
+<li>✅ Filtered variants based on multiple quality metrics</li>
+<li>✅ Explored VCF format and variant characteristics</li>
+<li>✅ Identified copy number variations with CNVkit</li>
+</ul>
+<p>You now have:</p>
+<ul>
+<li><code>somatic.filtered.PASS.vcf.gz</code>: High-confidence somatic SNVs</li>
+<li>CNVkit outputs: Copy number segmentation and visualizations</li>
+</ul>
+<p><strong>Next steps</strong>: We’ll annotate these variants to understand their functional impact and clinical significance.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/animesh\.github\.io\/cancer-variants-training\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
